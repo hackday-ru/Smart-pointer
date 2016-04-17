@@ -1,0 +1,110 @@
+// UTFT_Demo_480x320 
+// Copyright (C)2015 Rinky-Dink Electronics, Henning Karlsen. All right reserved
+// web: http://www.RinkyDinkElectronics.com/
+//
+// This program is a demo of how to use most of the functions
+// of the library with a supported display modules.
+//
+// This demo was made for modules with a screen resolution 
+// of 480x320 pixels.
+//
+// This program requires the UTFT library.
+//
+
+#include <UTFT.h>
+#include <string.h>
+
+const int analogInPin = A0;  // Analog input pin that the potentiometer is attached to
+const int analogOutPin = 9; // Analog output pin that the LED is attached to
+
+int sensorValue = 0;        // value read from the pot
+int outputValue = 0;        // value output to the PWM (analog out)
+float pit = 3.1415926; 
+float x;
+int h = 30;
+
+
+// Declare which fonts we will be using
+extern uint8_t BigFont[];
+
+// Set the pins to the correct ones for your development shield
+// ------------------------------------------------------------
+// Arduino Uno / 2009:
+// -------------------
+// Standard Arduino Uno/2009 shield            : <display model>,A5,A4,A3,A2
+// DisplayModule Arduino Uno TFT shield        : <display model>,A5,A4,A3,A2
+//
+// Arduino Mega:
+// -------------------
+// Standard Arduino Mega/Due shield            : <display model>,38,39,40,41
+// CTE TFT LCD/SD Shield for Arduino Mega      : <display model>,38,39,40,41
+//
+// Remember to change the model parameter to suit your display module!
+UTFT myGLCD(CTE32HR,38,39,40,41);
+
+void setup()
+{
+  randomSeed(analogRead(0));
+
+   // initialize serial communications at 9600 bps:
+  Serial.begin(9600);
+  
+// Setup the LCD
+  myGLCD.InitLCD();
+  myGLCD.setFont(BigFont);
+
+  myGLCD.clrScr();
+// Draw some lines in a pattern
+  myGLCD.setColor (255,0,0);
+  for (int i=15; i<304; i+=10)
+  {
+    myGLCD.drawLine(1, i, (i*1.6)-10, 304);
+  }
+  myGLCD.setColor (255,0,0);
+  for (int i=304; i>15; i-=10)
+  {
+    myGLCD.drawLine(478, i, (i*1.6)-11, 15);
+  }
+}
+
+void loop()
+{
+  int buf[478];
+  int x, x2;
+  int y, y2;
+  int r;
+
+ // read the analog in value:
+  sensorValue = analogRead(analogInPin);
+  // map it to the range of the analog out:
+  outputValue = map(sensorValue, 0, 1023, 0, 307);
+ // расчёт угла
+  x = h*tan(outputValue*pit/180.0);
+  
+  // change the analog out value:
+  analogWrite(analogOutPin, outputValue);
+
+  // print the results to the serial monitor:
+  Serial.print("sensor = ");
+  Serial.print(sensorValue);
+  Serial.print("\t output = ");
+  Serial.println(outputValue);
+
+
+  myGLCD.fillRect(0, 306, 479, 319);
+  myGLCD.setColor(255, 0, 0);
+  myGLCD.setBackColor(0, 0, 0);
+  String c = (String) x;
+  
+
+  myGLCD.setColor(0, 0, 0);
+  myGLCD.fillRect(130, 135, 350, 180);
+  myGLCD.setColor(255, 0, 0);
+  
+  myGLCD.print("distance (m) =", CENTER, 120);
+  
+  myGLCD.print(c, CENTER, 160);
+  
+  delay(200);
+
+}
